@@ -2,6 +2,7 @@
 
 #include <QObject>
 #include <array>
+#include <stack>
 
 class TriasDataModel : public QObject
 {
@@ -26,6 +27,19 @@ public:
 		BackAgain
 	};
 
+	void push() {
+		board_stack_.push(board_);
+		previous_stack_.push(previous_);
+	}
+
+	void pop() {
+		board_ = board_stack_.top();
+		board_stack_.pop();
+
+		previous_ = previous_stack_.top();
+		previous_stack_.pop();
+	}
+
 	int findPiece(int piece) const {
 		for (int pos = 0; pos <= maxPosNumber(); pos++)
 		{
@@ -47,6 +61,16 @@ public:
 		return pieceNumberToType(board_[pos]);
 	}
 
+	std::array<int, 3> adjacent(int from) {
+		std::array<int, 3> ret;
+
+		ret[0] = (from - 1) % 8;
+		ret[1] = (from + 1) % 8;
+		ret[2] = 8;
+
+		return ret;
+	}
+
 	void initBoard();
 
 
@@ -59,6 +83,12 @@ public:
 	bool isOccupied(int pos) const {
 		return isValidPieceNumber(board_[pos]);
 	}
+
+	static std::vector<std::array<int, 3>>& winningCombinations() {
+		return winning_combinations_;
+	}
+
+	bool win(TriasDataModel::Piece pc);
 
 public:
 	static constexpr const int BoardMaxPosition = 8;
@@ -75,6 +105,9 @@ public:
 
 signals:
 	void changed();
+
+private:
+	static const int CenterLocation = 8;
 
 private:
 	static Piece pieceNumberToType(int num) {
@@ -102,11 +135,15 @@ private:
 			(pos >= BlackOffMinPosition && pos <= BlackOffMaxPosition);
 	}
 
-	static const int CenterLocation = 8;
-
 private:
 	std::array<int, 15> board_;
 	std::array<int, 6> previous_;
+
+	std::stack<std::array<int, 15>> board_stack_;
+	std::stack<std::array<int, 6>> previous_stack_;
+
+	static std::vector<std::array<int, 3>> winning_combinations_;
+
 };
 
 static QString toString(TriasDataModel::Piece pc)

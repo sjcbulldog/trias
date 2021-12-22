@@ -1,5 +1,21 @@
 #include "TriasDataModel.h"
 
+std::vector<std::array<int, 3>> TriasDataModel::winning_combinations_ =
+{
+	{0, 1, 2},
+	{1, 2, 3},
+	{2, 3, 4},
+	{3, 4, 5},
+	{4, 5, 6},
+	{5, 6, 7},
+	{6, 7, 0},
+	{7, 0, 1},
+	{0, 8, 4},
+	{1, 8, 5},
+	{2, 8, 6},
+	{3, 8, 7}
+};
+
 TriasDataModel::TriasDataModel(QObject *parent) : QObject(parent)
 {
 	initBoard();
@@ -24,6 +40,30 @@ void TriasDataModel::initBoard()
 	std::fill(previous_.begin(), previous_.end(), -1);
 
 	emit changed();
+}
+
+
+bool TriasDataModel::win(TriasDataModel::Piece pc)
+{
+	for (int i = 0; i < winning_combinations_.size(); i++)
+	{
+		bool check = true;
+
+		const std::array<int, 3>& comb = winning_combinations_[i];
+		for (int j = 0; j < comb.size(); j++)
+		{
+			if (boardPiece(comb[j]) != pc)
+			{
+				check = false;
+				break;
+			}
+		}
+
+		if (check)
+			return true;
+	}
+
+	return false;
 }
 
 TriasDataModel::MoveError TriasDataModel::move(int from, int to, bool domove)

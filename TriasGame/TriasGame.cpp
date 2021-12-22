@@ -11,9 +11,7 @@ TriasGame::TriasGame(QWidget *parent) : QMainWindow(parent)
 
 	model_ = std::make_shared<TriasDataModel>(nullptr);
 
-	view_ = new BoardDisplayWidget();
-	setCentralWidget(view_);
-	view_->setDataModel(model_);
+	createWindows();
 
 	controller_ = std::make_shared<TriasController>(nullptr);
 	controller_->setDataModel(model_) ;
@@ -23,4 +21,24 @@ TriasGame::TriasGame(QWidget *parent) : QMainWindow(parent)
 	w = new ComputerPlayer(model_, TriasDataModel::Piece::White);
 	// w = new HumanPlayer(model_, TriasDataModel::Piece::White, view_);
 	controller_->setPlayers(b, w);
+}
+
+void TriasGame::createWindows()
+{
+	view_ = new BoardDisplayWidget();
+	setCentralWidget(view_);
+	view_->setDataModel(model_);
+
+	if (settings_.contains(GeometrySettings))
+		restoreGeometry(settings_.value(GeometrySettings).toByteArray());
+
+	if (settings_.contains(WindowStateSettings))
+		restoreState(settings_.value(WindowStateSettings).toByteArray());
+}
+
+void TriasGame::closeEvent(QCloseEvent* ev)
+{
+	settings_.setValue(GeometrySettings, saveGeometry());
+	settings_.setValue(WindowStateSettings, saveState());
+	QMainWindow::closeEvent(ev);
 }

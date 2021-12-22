@@ -39,8 +39,6 @@ private:
 	void playerTurnMessage();
 	void nextTurn();
 
-	bool win();
-
 private:
 	std::shared_ptr<TriasDataModel> model_;
 	BoardDisplayWidget* view_;
@@ -50,5 +48,4 @@ private:
 	IPlayer* black_player_;
 	IPlayer* current_player_;
 
-	static std::vector<std::array<int, 3>> winning_combinations_;
 };

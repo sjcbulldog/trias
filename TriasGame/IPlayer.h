@@ -37,6 +37,10 @@ protected:
 		return (pc_ == TriasDataModel::Piece::White) ? TriasDataModel::WhiteOffMinPosition : TriasDataModel::BlackOffMinPosition;
 	}
 
+	TriasDataModel::Piece otherPiece() const {
+		return (pc_ == TriasDataModel::Piece::White) ? TriasDataModel::Piece::Black : TriasDataModel::Piece::White;
+	}
+
 private:
 	std::shared_ptr<TriasDataModel> model_;
 	TriasDataModel::Piece pc_;

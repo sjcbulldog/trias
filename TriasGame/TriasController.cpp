@@ -3,22 +3,6 @@
 #include "BoardDisplayWidget.h"
 #include "IPlayer.h"
 
-std::vector<std::array<int, 3>> TriasController::winning_combinations_ =
-{
-	{0, 1, 2},
-	{1, 2, 3},
-	{2, 3, 4},
-	{3, 4, 5},
-	{4, 5, 6},
-	{5, 6, 7},
-	{6, 7, 0},
-	{7, 0, 1},
-	{0, 8, 4},
-	{1, 8, 5},
-	{2, 8, 6},
-	{3, 8, 7}
-};
-
 TriasController::TriasController(QObject *parent) : QObject(parent)
 {
 	view_ = nullptr;
@@ -62,6 +46,7 @@ void TriasController::messageDisplayComplete()
 	case GameState::Won:
 		model_->initBoard();
 		black_player_->yourTurn(true);
+		current_player_ = black_player_;
 		white_player_->yourTurn(false);
 		view_->displayMessage("New Game");
 		state_ = GameState::NewGame;
@@ -106,32 +91,10 @@ void TriasController::moveRequested(int from, int to)
 	}
 }
 
-bool TriasController::win()
-{
-	for (int i = 0; i < winning_combinations_.size(); i++)
-	{
-		bool check = true;
-
-		const std::array<int, 3>& comb = winning_combinations_[i];
-		for (int j = 0; j < comb.size(); j++)
-		{
-			if (model_->boardPiece(comb[j]) != current_player_->piece())
-			{
-				check = false;
-				break;
-			}
-		}
-
-		if (check)
-			return true;
-	}
-
-	return false;
-}
 
 void TriasController::nextTurn()
 {
-	if (win())
+	if (model_->win(current_player_->piece()))
 	{
 		QString msg = toString(current_player_->piece()) + " wins";
 		view_->displayMessage(msg, 3000);
