@@ -35,6 +35,7 @@ private:
 	void moveRequested(int from, int to);
 	void viewReady();
 	void messageDisplayComplete();
+	void animationComplete();
 
 	void playerTurnMessage();
 	void nextTurn();

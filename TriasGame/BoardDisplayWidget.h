@@ -23,6 +23,7 @@ signals:
 	void move(int from, int to);
 	void viewReady();
 	void messageDisplayComplete();
+	void animationComplete();
 
 protected:
 	void paintEvent(QPaintEvent* ev) override;

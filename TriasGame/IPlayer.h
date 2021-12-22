@@ -16,7 +16,7 @@ public:
 		pc_ = pc;
 	}
 	virtual bool isHuman() const = 0;
-	virtual void yourTurn(bool b) = 0;
+	virtual void yourTurn() = 0;
 	virtual TriasDataModel::Piece piece() const {
 		return pc_;
 	}

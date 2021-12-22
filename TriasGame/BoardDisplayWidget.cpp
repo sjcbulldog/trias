@@ -17,7 +17,7 @@ BoardDisplayWidget::BoardDisplayWidget(QWidget *parent) : QWidget(parent)
 	landing_ = QColor(0xD8, 0xB3, 0x70);
 
 	white_ = QColor(255, 255, 255);
-	black_ = QColor(0, 0, 0);
+	black_ = QColor(64, 64, 64);
 
 	r45_ = -1;
 	animating_ = -1;
@@ -102,6 +102,7 @@ void BoardDisplayWidget::animationStepDone()
 		animation_timer_.stop();
 		animating_ = -1;
 		animate_to_ = -1;
+		emit animationComplete();
 	}
 	update();
 }
@@ -280,20 +281,30 @@ void BoardDisplayWidget::paintEvent(QPaintEvent* ev)
 
 	if (display_message_)
 	{
+		static const int TextMargin = 8;
+
 		QFont font = p.font();
 		font.setBold(true);
 		font.setPointSizeF(16.0);
 
 		QFontMetrics fm(font);
 
-		QPen pen(QColor(0, 0, 255));
+		int twidth = fm.horizontalAdvance(message_text_);
+		QRect r(width() / 2 - twidth / 2 - TextMargin, height() / 2 - fm.height() / 2 - TextMargin, twidth + TextMargin * 2, fm.height() + TextMargin * 2);
+
+		QBrush br(QColor(0, 0, 0));
+		p.setBrush(br);
+		p.setPen(Qt::PenStyle::NoPen);
+		p.drawRect(r);
+
+		QPen pen(QColor(0, 255, 0));
 		p.setPen(pen);
 		p.setFont(font);
+		p.setBrush(Qt::BrushStyle::NoBrush);
 
-		int x = width() / 2 - fm.horizontalAdvance(message_text_) / 2;
-		int y = height() / 3;
-		QPoint pt(x, y);
-		p.drawText(pt, message_text_);
+		int x = r.center().x() - fm.horizontalAdvance(message_text_) / 2;
+		int y = r.center().y() + fm.height() / 2 - fm.descent();
+		p.drawText(QPoint(x,y), message_text_);
 	}
 }
 

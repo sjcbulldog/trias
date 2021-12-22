@@ -13,11 +13,8 @@ bool ComputerPlayer::isHuman() const
 	return false;
 }
 
-void ComputerPlayer::yourTurn(bool b)
+void ComputerPlayer::yourTurn()
 {
-	if (!b)
-		return;
-
 	if (moveOntoBoard())
 		return;
 
@@ -27,7 +24,7 @@ void ComputerPlayer::yourTurn(bool b)
 	assert(false);
 }
 
-int ComputerPlayer::doesCauseWin(int from, const std::array<int, 3>& adjacent)
+int ComputerPlayer::doesCauseWin(int from, const std::vector<int>& adjacent)
 {
 	int to = -1;
 
@@ -45,10 +42,13 @@ int ComputerPlayer::doesCauseWin(int from, const std::array<int, 3>& adjacent)
 	return to;
 }
 
+static int x = 0;
 bool ComputerPlayer::moveWithinBoard()
 {
 	int from = -1;
 	int to = -1;
+
+	x++;
 
 	//
 	// Check first for ways to win
@@ -59,7 +59,7 @@ bool ComputerPlayer::moveWithinBoard()
 		if (from > TriasDataModel::BoardMaxPosition)
 			continue;
 
-		std::array<int, 3> adjacent = model()->adjacent(from);
+		std::vector<int> adjacent = model()->adjacent(from);
 
 		//
 		// Can I move this piece to a place to win
@@ -80,7 +80,7 @@ bool ComputerPlayer::moveWithinBoard()
 			if (from > TriasDataModel::BoardMaxPosition)
 				continue;
 
-			std::array<int, 3> adjacent = model()->adjacent(from);
+			std::vector<int> adjacent = model()->adjacent(from);
 		}
 	}
 
@@ -95,16 +95,16 @@ bool ComputerPlayer::moveWithinBoard()
 			if (from > TriasDataModel::BoardMaxPosition)
 				continue;
 
-			std::array<int, 3> adjacent = model()->adjacent(from);
+			std::vector<int> adjacent = model()->adjacent(from);
 
-			for (int i = 0; i < 9; i++)
+			for (int i = 0; i < adjacent.size() * 2; i++)
 			{
 				int first = distro2_(engine_);
 				int second = distro2_(engine_);
 				std::swap(adjacent[first], adjacent[second]);
 			}
 
-			for (int i = 0; i < 3; i++)
+			for (int i = 0; i < adjacent.size(); i++)
 			{
 				if (!model()->isOccupied(adjacent[i]))
 				{
@@ -112,6 +112,9 @@ bool ComputerPlayer::moveWithinBoard()
 					break;
 				}
 			}
+
+			if (from != -1 && to != -1)
+				break;
 		}
 	}
 

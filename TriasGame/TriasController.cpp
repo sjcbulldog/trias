@@ -18,11 +18,9 @@ TriasController::~TriasController()
 
 void TriasController::setPlayers(IPlayer* black, IPlayer* white)
 {
-	black->yourTurn(false);
 	black_player_ = black;
 	(void)connect(black, &IPlayer::move, this, &TriasController::moveRequested);
 
-	white->yourTurn(false);
 	white_player_ = white;
 	(void)connect(white, &IPlayer::move, this, &TriasController::moveRequested);
 }
@@ -37,40 +35,60 @@ void TriasController::setView(BoardDisplayWidget* view)
 	view_ = view;
 	(void)connect(view_, &BoardDisplayWidget::viewReady, this, &TriasController::viewReady);
 	(void)connect(view_, &BoardDisplayWidget::messageDisplayComplete, this, &TriasController::messageDisplayComplete);
+	(void)connect(view_, &BoardDisplayWidget::animationComplete, this, &TriasController::animationComplete);
 }
 
 void TriasController::messageDisplayComplete()
 {
 	switch (state_)
 	{
+	case GameState::NewGame:
+		playerTurnMessage();
+		state_ = GameState::Playing;
+		black_player_->yourTurn();
+		break;
+
 	case GameState::Won:
 		model_->initBoard();
-		black_player_->yourTurn(true);
+		black_player_->yourTurn();
 		current_player_ = black_player_;
-		white_player_->yourTurn(false);
 		view_->displayMessage("New Game");
 		state_ = GameState::NewGame;
 		break;
 
-	case GameState::NewGame:
-		playerTurnMessage();
-		state_ = GameState::Playing;
+	case GameState::Playing:
 		break;
 	}
+}
+
+void TriasController::animationComplete()
+{
+	nextTurn();
 }
 
 void TriasController::moveRequested(int from, int to)
 {
 	assert(model_->boardPiece(from) == current_player_->piece());
 
+	//
+	// Check to see if the move is valid
+	//
 	TriasDataModel::MoveError err = model_->move(from, to);
+
 	switch (err)
 	{
 	case TriasDataModel::MoveError::Good:
+		// Yes the move is valid
 		if (!current_player_->isHuman())
+		{
 			view_->animateMove(from, to);
-		model_->move(from, to, true);
-		nextTurn();
+			model_->move(from, to, true);
+		}
+		else
+		{
+			model_->move(from, to, true);
+			nextTurn();
+		}
 		break;
 
 	case TriasDataModel::MoveError::InvalidDestination:
@@ -102,24 +120,20 @@ void TriasController::nextTurn()
 	}
 	else
 	{
-		current_player_->yourTurn(false);
-
 		if (current_player_ == white_player_)
 			current_player_ = black_player_;
 		else
 			current_player_ = white_player_;
 
-		current_player_->yourTurn(true);
+		current_player_->yourTurn();
 		playerTurnMessage();
 	}
 }
 
 void TriasController::viewReady()
 {
-	state_ = GameState::Playing;
+	state_ = GameState::NewGame; 
 	current_player_ = black_player_;
-	black_player_->yourTurn(true);
-
 	playerTurnMessage();
 }
 

@@ -13,14 +13,13 @@ public:
 	virtual ~HumanPlayer();
 
 	bool isHuman() const override { return true; }
-	void yourTurn(bool b) override;
+	void yourTurn() override;
 
 private:
 	void moveRequested(int from, int to);
 
 private:
 	BoardDisplayWidget* view_;
-	bool my_turn_;
 	QMetaObject::Connection view_connection_;
 };
 

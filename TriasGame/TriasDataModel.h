@@ -61,13 +61,20 @@ public:
 		return pieceNumberToType(board_[pos]);
 	}
 
-	std::array<int, 3> adjacent(int from) {
-		std::array<int, 3> ret;
+	std::vector<int> adjacent(int from) {
+		std::vector<int> ret;
 
-		ret[0] = (from - 1) % 8;
-		ret[1] = (from + 1) % 8;
-		ret[2] = 8;
-
+		if (from == 8)
+		{
+			for (int i = 0; i < 8; i++)
+				ret.push_back(i);
+		}
+		else
+		{
+			ret.push_back((from == 0) ? 7 : from - 1);
+			ret.push_back((from == 7) ? 0 : from + 1);
+			ret.push_back(8);
+		}
 		return ret;
 	}
 
