@@ -2,6 +2,7 @@
 #include "TriasDataModel.h"
 #include "BoardDisplayWidget.h"
 #include "IPlayer.h"
+#include <QtCore/QDebug>
 
 TriasController::TriasController(QObject *parent) : QObject(parent)
 {
@@ -10,6 +11,13 @@ TriasController::TriasController(QObject *parent) : QObject(parent)
 	white_player_ = nullptr;
 	black_player_ = nullptr;
 	current_player_ = nullptr;
+	state_ = GameState::Idle;
+	msg_pending_ = false;
+	is_view_ready_ = false;
+	has_player_played_ = false;
+
+	(void)connect(&timer_, &QTimer::timeout, this, &TriasController::timerCallback);
+	timer_.start(200);
 }
 
 TriasController::~TriasController()
@@ -38,36 +46,187 @@ void TriasController::setView(BoardDisplayWidget* view)
 	(void)connect(view_, &BoardDisplayWidget::animationComplete, this, &TriasController::animationComplete);
 }
 
-void TriasController::messageDisplayComplete()
+void TriasController::viewReady()
 {
-	switch (state_)
+	is_view_ready_ = true;
+}
+
+void TriasController::animationComplete(int from, int to)
+{
+	qDebug() << "animationComplete: from=" << from << ", to=" << to;
+	has_player_played_ = true;
+}
+
+void TriasController::playerTurnMessage()
+{
+	if (current_player_->isHuman())
 	{
-	case GameState::NewGame:
-		playerTurnMessage();
-		state_ = GameState::Playing;
-		black_player_->yourTurn();
-		break;
-
-	case GameState::Won:
-		model_->initBoard();
-		black_player_->yourTurn();
-		current_player_ = black_player_;
-		view_->displayMessage("New Game");
-		state_ = GameState::NewGame;
-		break;
-
-	case GameState::Playing:
-		break;
+		QString msg = "It is " + ::toString(current_player_->piece()).toLower() + "'s turn";
+		displayMessage(msg);
+	}
+	else
+	{
+		msg_pending_ = false;
 	}
 }
 
-void TriasController::animationComplete()
+void TriasController::displayMessage(const QString& msg)
 {
-	nextTurn();
+	msg_pending_ = true;
+	view_->displayMessage(msg);
 }
+
+void TriasController::timerCallback()
+{
+	GameState st = state_;
+
+	switch (state_)
+	{
+	case GameState::Idle:
+		if (is_view_ready_)
+		{
+			state_ = GameState::PrepBlackPlay;
+		}
+		break;
+
+	case GameState::PrepBlackPlay:
+		current_player_ = black_player_;
+		current_player_->startTurn();
+		state_ = GameState::BlackPlay;
+		has_player_played_ = false;
+		playerTurnMessage();
+		break;
+
+	case GameState::BlackPlay:
+		if (!msg_pending_)
+		{
+			current_player_->turn();
+			state_ = GameState::FinishBlackPlay;
+		}
+		break;
+
+	case GameState::FinishBlackPlay:
+		if (has_player_played_)
+		{
+			if (model_->win(current_player_->piece()))
+			{
+				state_ = GameState::Won;
+				displayMessage("Black won");
+			}
+			else
+			{
+				current_player_->endTurn();
+				current_player_ = nullptr;
+				state_ = GameState::PrepWhitePlay;
+			}
+		}	
+		break;
+
+	case GameState::PrepWhitePlay:
+		current_player_ = white_player_;
+		current_player_->startTurn();
+		state_ = GameState::WhitePlay;
+		has_player_played_ = false;
+		playerTurnMessage();
+		break;
+
+	case GameState::WhitePlay:
+		if (!msg_pending_)
+		{
+			current_player_->turn();
+			state_ = GameState::FinishWhitePlay;
+		}
+		break;
+
+	case GameState::FinishWhitePlay:
+		if (has_player_played_)
+		{
+			if (model_->win(current_player_->piece()))
+			{
+				state_ = GameState::Won;
+				displayMessage("Black won");
+			}
+			else
+			{
+				current_player_->endTurn();
+				current_player_ = nullptr;
+				state_ = GameState::PrepBlackPlay;
+			}
+		}
+		break;
+
+	case GameState::Won:
+		if (!msg_pending_)
+		{
+			model_->initBoard();
+			state_ = GameState::NewGame;
+			displayMessage("New Game");
+		}
+		break;
+
+	case GameState::NewGame:
+		if (!msg_pending_)
+		{
+			state_ = GameState::PrepBlackPlay;
+		}
+		break;
+	}
+
+	if (st != state_)
+	{
+		qDebug() << "State: " << toString(st) << " -> " << toString(state_);
+	}
+}
+
+QString TriasController::toString(GameState st)
+{
+	QString ret = "UNKNOWN";
+
+	switch (st)
+	{
+	case GameState::BlackPlay:
+		ret = "BlackPlay";
+		break;
+	case GameState::FinishBlackPlay:
+		ret = "FinishBlackPlay";
+		break;
+	case GameState::FinishWhitePlay:
+		ret = "FinishWhitePlay";
+		break;
+	case GameState::Idle:
+		ret = "Idle";
+		break;
+	case GameState::NewGame:
+		ret = "NewGame";
+		break;
+	case GameState::PrepBlackPlay:
+		ret = "PrepBlackPlay";
+		break;
+	case GameState::PrepWhitePlay:
+		ret = "PrepWhitePlay";
+		break;
+	case GameState::WhitePlay:
+		ret = "WhitePlay";
+		break;
+	case GameState::Won:
+		ret = "Won";
+		break;
+	}
+
+	return ret;
+}
+
+void TriasController::messageDisplayComplete(const QString &msg)
+{
+	msg_pending_ = false;
+	qDebug() << "messageDisplayComplete: msg='" << msg << "'";
+}
+
 
 void TriasController::moveRequested(int from, int to)
 {
+	qDebug() << "moveRequested: from=" << from << ", to=" << to << ", piece=" << model_->board(from);
+
 	assert(model_->boardPiece(from) == current_player_->piece());
 
 	//
@@ -86,8 +245,8 @@ void TriasController::moveRequested(int from, int to)
 		}
 		else
 		{
+			has_player_played_ = true;
 			model_->move(from, to, true);
-			nextTurn();
 		}
 		break;
 
@@ -96,6 +255,7 @@ void TriasController::moveRequested(int from, int to)
 		break;
 
 	case TriasDataModel::MoveError::LocationOccupied:
+		qDebug() << "Location Occupied";
 		view_->displayMessage("There is already a piece at that location");
 		break;
 
@@ -106,42 +266,5 @@ void TriasController::moveRequested(int from, int to)
 	case TriasDataModel::MoveError::BackAgain:
 		view_->displayMessage("You cannot move a piece back to its previous location");
 		break;
-	}
-}
-
-
-void TriasController::nextTurn()
-{
-	if (model_->win(current_player_->piece()))
-	{
-		QString msg = toString(current_player_->piece()) + " wins";
-		view_->displayMessage(msg, 3000);
-		state_ = GameState::Won;
-	}
-	else
-	{
-		if (current_player_ == white_player_)
-			current_player_ = black_player_;
-		else
-			current_player_ = white_player_;
-
-		current_player_->yourTurn();
-		playerTurnMessage();
-	}
-}
-
-void TriasController::viewReady()
-{
-	state_ = GameState::NewGame; 
-	current_player_ = black_player_;
-	playerTurnMessage();
-}
-
-void TriasController::playerTurnMessage()
-{
-	if (current_player_->isHuman())
-	{
-		QString msg = "It is " + toString(current_player_->piece()).toLower() + "'s turn";
-		view_->displayMessage(msg);
 	}
 }

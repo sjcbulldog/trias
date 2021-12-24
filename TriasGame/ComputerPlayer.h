@@ -12,7 +12,9 @@ public:
 	virtual ~ComputerPlayer();
 
 	bool isHuman() const override;
-	void yourTurn() override;
+	virtual void startTurn() override;
+	virtual void turn() override;
+	virtual void endTurn() override;
 
 private:
 	void moveOntoBoard();

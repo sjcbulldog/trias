@@ -13,7 +13,9 @@ public:
 	virtual ~HumanPlayer();
 
 	bool isHuman() const override { return true; }
-	void yourTurn() override;
+	virtual void startTurn() override;
+	virtual void turn() override;
+	virtual void endTurn() override;
 
 private:
 	void moveRequested(int from, int to);

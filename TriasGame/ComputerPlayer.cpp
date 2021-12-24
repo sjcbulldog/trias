@@ -1,4 +1,5 @@
 #include "ComputerPlayer.h"
+#include <QtCore/QDebug>
 
 ComputerPlayer::ComputerPlayer(std::shared_ptr<TriasDataModel> model, TriasDataModel::Piece pc) : IPlayer(model, pc), distro8_(0, 8), distro2_(0, 2)
 {
@@ -13,7 +14,11 @@ bool ComputerPlayer::isHuman() const
 	return false;
 }
 
-void ComputerPlayer::yourTurn()
+void ComputerPlayer::startTurn()
+{
+}
+
+void ComputerPlayer::turn()
 {
 	if (model()->hasPiecesOffBoard(piece()))
 	{
@@ -23,6 +28,10 @@ void ComputerPlayer::yourTurn()
 	{
 		moveWithinBoard();
 	}
+}
+
+void ComputerPlayer::endTurn()
+{
 }
 
 void ComputerPlayer::moveOntoBoard()
@@ -90,6 +99,7 @@ void ComputerPlayer::moveWithinBoard()
 			int pos = model()->findFrom(entry[0], piece());
 			if (pos != -1)
 			{
+				qDebug() << "Computer Player: win strategy: from=" << from << ", to=" << to;
 				from = pos;
 				to = entry[0];
 				break;
@@ -109,6 +119,7 @@ void ComputerPlayer::moveWithinBoard()
 			int pos = model()->findFrom(entry[0], piece());
 			if (pos != -1)
 			{
+				qDebug() << "Computer Player: block strategy: from=" << from << ", to=" << to;
 				from = pos;
 				to = entry[0];
 				break;
@@ -143,6 +154,7 @@ void ComputerPlayer::moveWithinBoard()
 			{
 				if (model()->isValidMove(pieces[i], pos, adj[j]))
 				{
+					qDebug() << "Computer Player: random strategy: from=" << from << ", to=" << to;
 					from = pos;
 					to = adj[j];
 					break;

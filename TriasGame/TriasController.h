@@ -1,7 +1,8 @@
 #pragma once
 
 #include "TriasDataModel.h"
-#include <QObject>
+#include <QtCore/QObject>
+#include <QtCore/QTimer>
 #include <memory>
 #include <array>
 #include <vector>
@@ -26,27 +27,41 @@ private:
 	enum class GameState
 	{
 		Idle,
-		Playing,
+		PrepBlackPlay,
+		BlackPlay,
+		FinishBlackPlay,
+		PrepWhitePlay,
+		WhitePlay,
+		FinishWhitePlay,
 		Won,
-		NewGame,
+		NewGame
 	};
 
 private:
 	void moveRequested(int from, int to);
 	void viewReady();
-	void messageDisplayComplete();
-	void animationComplete();
+	void messageDisplayComplete(const QString& msg);
+	void animationComplete(int from, int to);
 
 	void playerTurnMessage();
 	void nextTurn();
+
+	void timerCallback();
+	void displayMessage(const QString& msg);
+
+	QString toString(GameState st);
 
 private:
 	std::shared_ptr<TriasDataModel> model_;
 	BoardDisplayWidget* view_;
 	GameState state_;
+	bool msg_pending_;
+	bool is_view_ready_;
+	bool has_player_played_;
 
 	IPlayer* white_player_;
 	IPlayer* black_player_;
 	IPlayer* current_player_;
 
+	QTimer timer_;
 };

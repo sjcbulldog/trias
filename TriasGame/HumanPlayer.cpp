@@ -12,14 +12,21 @@ HumanPlayer::~HumanPlayer()
 {
 }
 
-void HumanPlayer::yourTurn()
+void HumanPlayer::startTurn()
 {
 	view_connection_ = connect(view_, &BoardDisplayWidget::move, this, &HumanPlayer::moveRequested);
 }
 
+void HumanPlayer::turn()
+{
+}
+
 void HumanPlayer::moveRequested(int from, int to)
 {
-	qDebug() << "HumanPlayer::moveRequested: from=" << from << ", to=" << to;
 	emit move(from, to);
+}
+
+void HumanPlayer::endTurn()
+{
 	disconnect(view_connection_);
 }

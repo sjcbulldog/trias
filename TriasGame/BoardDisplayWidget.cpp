@@ -53,7 +53,7 @@ void BoardDisplayWidget::messageDone()
 {
 	display_message_ = false;
 	update();
-	emit messageDisplayComplete();
+	emit messageDisplayComplete(message_text_);
 }
 
 void BoardDisplayWidget::mouseMoveEvent(QMouseEvent* ev)
@@ -99,10 +99,13 @@ void BoardDisplayWidget::animationStepDone()
 
 	if (animation_steps_ == 0)
 	{
+		int from = animating_;
+		int to = animate_to_;
+
 		animation_timer_.stop();
 		animating_ = -1;
 		animate_to_ = -1;
-		emit animationComplete();
+		emit animationComplete(from, to);
 	}
 	update();
 }
@@ -273,9 +276,6 @@ void BoardDisplayWidget::paintEvent(QPaintEvent* ev)
 
 	if (dragging_ != -1 || animating_ != -1)
 	{
-		if (animating_ != -1)
-			qDebug() << "animating: " << drag_pos_;
-
 		drawPiece(p, drag_pos_, drag_color_);
 	}
 

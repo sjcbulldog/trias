@@ -22,8 +22,8 @@ public:
 signals:
 	void move(int from, int to);
 	void viewReady();
-	void messageDisplayComplete();
-	void animationComplete();
+	void messageDisplayComplete(const QString& msg);
+	void animationComplete(int from, int to);
 
 protected:
 	void paintEvent(QPaintEvent* ev) override;
