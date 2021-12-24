@@ -27,6 +27,22 @@ public:
 		BackAgain
 	};
 
+	void whiteWon() {
+		white_wins_++;
+	}
+
+	int numberWhiteWins() const {
+		return white_wins_;
+	}
+
+	void blackWon() {
+		black_wins_;
+	}
+
+	int numberBlackWins() const {
+		return black_wins_;
+	}
+
 	bool hasPiecesOffBoard(Piece pc);
 
 	int findPiece(int piece) const {
@@ -92,6 +108,8 @@ public:
 
 	bool isValidMove(int pc, int from, int to);
 
+	QString toString();
+
 public:
 	static constexpr const int BoardMaxPosition = 8;
 	static constexpr const int BlackOffMinPosition = 9;
@@ -127,6 +145,10 @@ private:
 		return p;
 	}
 
+	static int pieceNumberToIndex(int num) {
+		return (pieceNumberToType(num) == Piece::Black) ? 0 : 1;
+	}
+
 	static bool isValidPieceNumber(int num) {
 		return (num >= FirstBlackPieceNumber && num <= LastBlackPieceNumber) ||
 			(num >= FirstWhitePieceNumber && num <= LastWhitePieceNumber);
@@ -142,7 +164,10 @@ private:
 
 private:
 	std::array<int, 15> board_;
-	std::array<int, 6> previous_;
+	std::array<std::pair<int, int>, 2> previous_;
+
+	int white_wins_;
+	int black_wins_;
 
 	static std::vector<std::array<int, 3>> winning_combinations_;
 

@@ -19,6 +19,9 @@ BoardDisplayWidget::BoardDisplayWidget(QWidget *parent) : QWidget(parent)
 	white_ = QColor(255, 255, 255);
 	black_ = QColor(64, 64, 64);
 
+	valid_color_ = QColor(192, 255, 192);
+	invalid_color_ = QColor(255, 192, 192);
+
 	r45_ = -1;
 	animating_ = -1;
 	animate_to_ = -1;
@@ -133,6 +136,14 @@ void BoardDisplayWidget::mousePressEvent(QMouseEvent* ev)
 			dragging_ = downpos;
 			drag_pos_ = centerOfPos(downpos);
 			drag_color_ = pieceToColor(model_->boardPiece(downpos));
+			int pc = model_->board(downpos);
+
+			valid_pos_.clear();
+			for (int i = 0; i <= 8; i++)
+			{
+				if (model_->isValidMove(pc, downpos, i))
+					valid_pos_.push_back(i);
+			}
 		}
 	}
 }
@@ -154,6 +165,7 @@ void BoardDisplayWidget::mouseReleaseEvent(QMouseEvent* ev)
 
 		if (uppos != -1)
 		{
+			qDebug() << "mouseRelease " << dragging_ << " " << uppos;
 			emit move(dragging_, uppos);
 		}
 
@@ -276,6 +288,24 @@ void BoardDisplayWidget::paintEvent(QPaintEvent* ev)
 
 	if (dragging_ != -1 || animating_ != -1)
 	{
+		if (dragging_ != -1)
+		{
+			for (int i = 0; i <= 8; i++)
+			{
+				if (!model_->isOccupied(i))
+				{
+					if (std::find(valid_pos_.begin(), valid_pos_.end(), i) != valid_pos_.end())
+					{
+						drawPiece(p, centerOfPos(i), valid_color_);
+					}
+					else
+					{
+						drawPiece(p, centerOfPos(i), invalid_color_);
+					}
+				}
+			}
+		}
+
 		drawPiece(p, drag_pos_, drag_color_);
 	}
 
@@ -349,6 +379,26 @@ QPoint BoardDisplayWidget::centerOfOff(int which, bool left)
 	return QPoint(x, y);
 }
 
+void BoardDisplayWidget::drawWins(QPainter& p)
+{
+	p.save();
+
+	QFont font = p.font();
+	font.setPointSizeF(14);
+	p.setFont(font);
+	QFontMetrics fm(font);
+
+	QString str = "Black " + QString::number(model_->numberBlackWins());
+	QPoint pt(2, fm.height());
+	p.drawText(pt, str);
+
+	str = "White " + QString::number(model_->numberWhiteWins());
+	pt = QPoint(width() - fm.horizontalAdvance(str) - 2, 2);
+	p.drawText(pt, str);
+
+	p.restore();
+}
+
 void BoardDisplayWidget::drawBoard(QPainter &p)
 {
 	p.save();
@@ -379,6 +429,8 @@ void BoardDisplayWidget::drawBoard(QPainter &p)
 		QPoint pt = centerOfPos(i);
 		p.drawEllipse(pt, radiusOfPieces(), radiusOfPieces());
 	}
+
+	drawWins(p);
 
 	p.restore();
 }

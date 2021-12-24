@@ -154,9 +154,10 @@ void ComputerPlayer::moveWithinBoard()
 			{
 				if (model()->isValidMove(pieces[i], pos, adj[j]))
 				{
-					qDebug() << "Computer Player: random strategy: from=" << from << ", to=" << to;
 					from = pos;
 					to = adj[j];
+					qDebug() << "Computer Player: random strategy: from=" << from << ", to=" << to;
+					qDebug() << model()->toString();
 					break;
 				}
 			}

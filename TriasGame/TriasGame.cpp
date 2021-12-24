@@ -17,7 +17,8 @@ TriasGame::TriasGame(QWidget *parent) : QMainWindow(parent)
 	controller_->setDataModel(model_) ;
 	controller_->setView(view_);
 
-	b = new HumanPlayer(model_, TriasDataModel::Piece::Black, view_);
+	// b = new HumanPlayer(model_, TriasDataModel::Piece::Black, view_);
+	b = new ComputerPlayer(model_, TriasDataModel::Piece::Black);
 	w = new ComputerPlayer(model_, TriasDataModel::Piece::White);
 	// w = new HumanPlayer(model_, TriasDataModel::Piece::White, view_);
 	controller_->setPlayers(b, w);

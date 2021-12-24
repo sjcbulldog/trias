@@ -99,6 +99,8 @@ private:
 	// Draw a piece at the coordinates given by center
 	void drawPiece(QPainter& p, const QPoint& center, QColor c);
 
+	void drawWins(QPainter& p);
+
 	// Return the point that is the center of the off board position for player markers
 	// The which should be between 0 and 2 and the left is true for the left side of the board
 	// and false for the right side of the board.
@@ -129,6 +131,8 @@ private:
 	QColor landing_;
 	QColor white_;
 	QColor black_;
+	QColor valid_color_;
+	QColor invalid_color_;
 	int r45_;
 
 	//
@@ -154,4 +158,6 @@ private:
 	bool display_message_;
 	QString message_text_;
 	int display_time_;
+
+	std::vector<int> valid_pos_;
 };

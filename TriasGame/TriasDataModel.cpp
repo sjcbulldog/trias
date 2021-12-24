@@ -25,6 +25,20 @@ TriasDataModel::~TriasDataModel()
 {
 }
 
+QString TriasDataModel::toString()
+{
+	QString ret;
+
+	for (int i = 0; i < board_.size(); i++)
+	{
+		if (i != 0)
+			ret += " ";
+		ret += QString::number(i) + ":" + QString::number(board_[i]);
+	}
+
+	return ret;
+}
+
 bool TriasDataModel::hasPiecesOffBoard(Piece pc)
 {
 	int first, last;
@@ -104,10 +118,14 @@ void TriasDataModel::getPieceRange(Piece pc, int& first, int& last)
 
 bool TriasDataModel::isValidMove(int pc, int from, int to)
 {
-	if (!isAdjacent(from, to))
+	if (isOccupied(to))
 		return false;
 
-	if (previous_[pc] == to)
+	if (from < BlackOffMinPosition && !isAdjacent(from, to))
+		return false;
+
+	const std::pair<int, int> prev = previous_[pieceNumberToIndex(pc)];
+	if (prev.first == pc && prev.second == to)
 		return false;
 
 	return true;
@@ -155,7 +173,8 @@ void TriasDataModel::initBoard()
 	board_[WhiteOffMinPosition + 1] = FirstWhitePieceNumber + 1;
 	board_[WhiteOffMinPosition + 2] = FirstWhitePieceNumber + 2;
 
-	std::fill(previous_.begin(), previous_.end(), -1);
+	previous_[0] = std::make_pair(-1, -1);
+	previous_[1] = std::make_pair(-1, -1);
 
 	emit changed();
 }
@@ -191,6 +210,7 @@ TriasDataModel::MoveError TriasDataModel::move(int from, int to, bool domove)
 	assert(isOccupied(from));
 
 	int piece = board(from);
+	const std::pair<int, int> prev = previous_[pieceNumberToIndex(piece)];
 
 	MoveError ret = MoveError::Good;
 
@@ -205,7 +225,7 @@ TriasDataModel::MoveError TriasDataModel::move(int from, int to, bool domove)
 	{
 		ret = MoveError::LocationOccupied;
 	}
-	else if (previous_[piece] == to)
+	else if (prev.first == piece && prev.second == to)
 	{
 		ret = MoveError::BackAgain;
 	}
@@ -221,7 +241,7 @@ TriasDataModel::MoveError TriasDataModel::move(int from, int to, bool domove)
 			{
 				board_[to] = board_[from];
 				board_[from] = -1;
-				previous_[piece] = from;
+				previous_[pieceNumberToIndex(piece)] = std::make_pair(piece, from);
 				emit changed();
 			}
 		}

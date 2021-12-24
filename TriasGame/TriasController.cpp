@@ -108,14 +108,15 @@ void TriasController::timerCallback()
 	case GameState::FinishBlackPlay:
 		if (has_player_played_)
 		{
+			current_player_->endTurn();
 			if (model_->win(current_player_->piece()))
 			{
+				model_->blackWon();
 				state_ = GameState::Won;
 				displayMessage("Black won");
 			}
 			else
 			{
-				current_player_->endTurn();
 				current_player_ = nullptr;
 				state_ = GameState::PrepWhitePlay;
 			}
@@ -141,14 +142,15 @@ void TriasController::timerCallback()
 	case GameState::FinishWhitePlay:
 		if (has_player_played_)
 		{
+			current_player_->endTurn();
 			if (model_->win(current_player_->piece()))
 			{
+				model_->whiteWon();
 				state_ = GameState::Won;
-				displayMessage("Black won");
+				displayMessage("White won");
 			}
 			else
 			{
-				current_player_->endTurn();
 				current_player_ = nullptr;
 				state_ = GameState::PrepBlackPlay;
 			}
