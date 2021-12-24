@@ -1,6 +1,7 @@
 #include "HumanPlayer.h"
 #include "BoardDisplayWidget.h"
 #include "TriasDataModel.h"
+#include <QtCore/QDebug>
 
 HumanPlayer::HumanPlayer(std::shared_ptr<TriasDataModel> model, TriasDataModel::Piece pc, BoardDisplayWidget* view) : IPlayer(model, pc)
 {
@@ -18,6 +19,7 @@ void HumanPlayer::yourTurn()
 
 void HumanPlayer::moveRequested(int from, int to)
 {
+	qDebug() << "HumanPlayer::moveRequested: from=" << from << ", to=" << to;
 	emit move(from, to);
 	disconnect(view_connection_);
 }

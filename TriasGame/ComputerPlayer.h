@@ -15,13 +15,10 @@ public:
 	void yourTurn() override;
 
 private:
-	bool moveOntoBoard();
-	bool moveWithinBoard();
+	void moveOntoBoard();
+	void moveWithinBoard();
 
-	int findBlockWinLocation(bool win);
 	int findRandomLocation();
-
-	int doesCauseWin(int from, const std::vector<int>& adjacent);
 
 private:
 	std::default_random_engine engine_;

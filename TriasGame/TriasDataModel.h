@@ -27,18 +27,7 @@ public:
 		BackAgain
 	};
 
-	void push() {
-		board_stack_.push(board_);
-		previous_stack_.push(previous_);
-	}
-
-	void pop() {
-		board_ = board_stack_.top();
-		board_stack_.pop();
-
-		previous_ = previous_stack_.top();
-		previous_stack_.pop();
-	}
+	bool hasPiecesOffBoard(Piece pc);
 
 	int findPiece(int piece) const {
 		for (int pos = 0; pos <= maxPosNumber(); pos++)
@@ -97,6 +86,12 @@ public:
 
 	bool win(TriasDataModel::Piece pc);
 
+	std::vector<std::array<int, 3>> searchForTwo(Piece pc);
+	int findFrom(int to, Piece pc);
+
+
+	bool isValidMove(int pc, int from, int to);
+
 public:
 	static constexpr const int BoardMaxPosition = 8;
 	static constexpr const int BlackOffMinPosition = 9;
@@ -117,6 +112,8 @@ private:
 	static const int CenterLocation = 8;
 
 private:
+	static void getPieceRange(Piece pc, int& first, int& last);
+
 	static Piece pieceNumberToType(int num) {
 		Piece p = Piece::None;
 
@@ -142,12 +139,10 @@ private:
 			(pos >= BlackOffMinPosition && pos <= BlackOffMaxPosition);
 	}
 
+
 private:
 	std::array<int, 15> board_;
 	std::array<int, 6> previous_;
-
-	std::stack<std::array<int, 15>> board_stack_;
-	std::stack<std::array<int, 6>> previous_stack_;
 
 	static std::vector<std::array<int, 3>> winning_combinations_;
 

@@ -25,6 +25,124 @@ TriasDataModel::~TriasDataModel()
 {
 }
 
+bool TriasDataModel::hasPiecesOffBoard(Piece pc)
+{
+	int first, last;
+
+	getPieceRange(pc, first, last);
+	for (int i = first; i <= last; i++)
+	{
+		int pos = findPiece(i);
+		if (isOff(pos))
+			return true;
+	}
+
+	return false;
+}
+
+std::vector<std::array<int, 3>> TriasDataModel::searchForTwo(Piece pc)
+{
+	std::vector<std::array<int, 3>> result;
+
+	for (const std::array<int, 3> &one : winning_combinations_)
+	{
+		int sum = 0;
+		for (int i = 0; i < one.size(); i++)
+		{
+			if (boardPiece(one[i]) == pc)
+				sum++;
+			else if (isOccupied(one[i]))
+				sum--;
+		}
+
+		if (sum == 2)
+		{
+			std::array<int, 3> entry;
+
+			if (boardPiece(one[0]) == Piece::None)
+			{
+				entry[0] = one[0];
+				entry[1] = one[1];
+				entry[2] = one[2];
+			}
+			else if (boardPiece(one[1]) == Piece::None)
+			{
+				entry[0] = one[1];
+				entry[1] = one[0];
+				entry[2] = one[2];
+			}
+			else if (boardPiece(one[2]) == Piece::None)
+			{
+				entry[0] = one[2];
+				entry[1] = one[0];
+				entry[2] = one[1];
+			}
+			result.push_back(entry);
+		}
+	}
+
+	return result;
+}
+
+void TriasDataModel::getPieceRange(Piece pc, int& first, int& last)
+{
+	if (pc == Piece::Black)
+	{
+		first = FirstBlackPieceNumber;
+		last = LastBlackPieceNumber;
+	}
+	else if (pc == Piece::White)
+	{
+		first = FirstWhitePieceNumber;
+		last = LastWhitePieceNumber;
+	}
+	else
+	{
+		assert(false);
+	}
+}
+
+bool TriasDataModel::isValidMove(int pc, int from, int to)
+{
+	if (!isAdjacent(from, to))
+		return false;
+
+	if (previous_[pc] == to)
+		return false;
+
+	return true;
+}
+
+int TriasDataModel::findFrom(int to, Piece pc)
+{
+	int first, last;
+
+	//
+	// Check to see if there are pieces that are off the
+	// board and can be moved to any spot
+	//
+	getPieceRange(pc, first, last);
+	for (int i = first; i <= last; i++)
+	{
+		int pos = findPiece(i);
+		if (isOff(pos))
+			return pos;
+	}
+
+	//
+	// Now check to see if there is a piece that is valid to move
+	// to the desired location
+	//
+	for (int i = first; i <= last; i++)
+	{
+		int pos = findPiece(i);
+		if (isValidMove(i, pos, to))
+			return pos;
+	}
+
+	return -1;
+}
+
 void TriasDataModel::initBoard()
 {
 	std::fill(board_.begin(), board_.end(), NoPieceNumber);
